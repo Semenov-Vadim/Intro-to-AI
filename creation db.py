@@ -19,7 +19,7 @@ French
 
 
 
-# """
+"""
 c.execute('''DROP TABLE student ''')
 
 #Create table
@@ -31,22 +31,21 @@ sub4 varchar(50),
 Ukrainian tinyint,
 Math tinyint,
 v3 tinyint,
-v4 tinyint
+v4 tinyint,
+kReg float
 )''')
-
 
 # Insert a row of data
 c.execute('''
 INSERT INTO student 
 VALUES 
-(1, 10.5, 'English', 'Physics', 189, 172, 179, 175)
+(1, 10.3, 'English', 'Physics', 189, 172, 179, 175, 1.01)
 ''')
 
-"""
 c.execute('''
 INSERT INTO student
 VALUES 
-((SELECT MAX(studentId) + 1 FROM student), 11.2, 'History', 'English', 170, 172, 160, 175)
+((SELECT MAX(studentId) + 1 FROM student), 11.2, 'History', 'English', 170, 172, 160, 175, 1.02)
 ''')
 """
 
@@ -98,7 +97,10 @@ INSERT INTO speciality VALUES
 ((SELECT MAX(specId) + 6 FROM speciality), '056 Psychology', 'Kharkiv', 'VN Karazin Kharkiv National University', 'FP', 179.826, 'Physics', 'Biology', 
 0.25, 0.4, 0.25, 0.1, 100, 110, 110),
 ((SELECT MAX(specId) + 7 FROM speciality), '057 Psychology', 'Kharkiv', 'VN Karazin Kharkiv National University', 'FP', 179.826, 'Spanish', 'Chemistry', 
+0.25, 0.4, 0.25, 0.1, 100, 110, 110),
+((SELECT MAX(specId) + 8 FROM speciality), '058 Psychology', 'Kharkiv', 'VN Karazin Kharkiv National University', 'FP', 179.826, 'Biology', 'Physics', 
 0.25, 0.4, 0.25, 0.1, 100, 110, 110)
+
 ''')
 
 #"""
