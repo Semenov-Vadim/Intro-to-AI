@@ -128,7 +128,7 @@ VALUES
 """
 
 # вывод списка студентов и специальностей
-print("students: ")
+print("\nstudents: ")
 for row in c.execute('''SELECT * FROM student'''):
     print(row)
 
@@ -138,8 +138,10 @@ for row in c.execute('''SELECT * FROM speciality'''):
 
 
 
+
 print("\nRecommended specialities: ")
 # формирование балла по специальности
+# балл аттестата из 12-бальной с-мы в 200-балльную переводится по формуле (attestation * 10 + 80)
 for row in c.execute('''
 SELECT speciality.name, 
 CASE 
