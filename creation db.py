@@ -19,7 +19,7 @@ French
 
 
 
-"""
+
 c.execute('''DROP TABLE student ''')
 
 #Create table
@@ -35,6 +35,7 @@ v4 tinyint,
 kReg float
 )''')
 
+"""
 # Insert a row of data
 c.execute('''
 INSERT INTO student 
