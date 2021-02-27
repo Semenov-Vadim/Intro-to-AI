@@ -103,9 +103,6 @@ def is_digit(string):
             return True
         except ValueError:
             return False
-'''def isint(string):
-    if string.isdigit():
-       return True'''
 
 # checking for incorrect input data
 def checkInput():
