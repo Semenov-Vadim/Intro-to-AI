@@ -20,7 +20,7 @@ French
 
 
 
-c.execute('''DROP TABLE student ''')
+c.execute('''DROP TABLE if exists student''')
 
 #Create table
 c.execute('''CREATE TABLE student(
@@ -53,7 +53,7 @@ VALUES
 # ---------------------------------------------------
 
 #"""
-c.execute('''DROP TABLE speciality ''')
+c.execute('''DROP TABLE if exists speciality''')
 
 c.execute('''CREATE TABLE speciality(
 specId int PRIMARY KEY NOT NULL,
