@@ -35,7 +35,7 @@ lblName = Label(window, text="Название")
 lblName.grid(column=0, row=rowInfo, pady=5)
 lblGrade = Label(window, text="Балл")
 lblGrade.grid(column=1, row=rowInfo)
-lblEmpty = Label(window, text="")       #создает третий столбик в grid для красивого вывода infoPanel
+lblEmpty = Label(window, text="")       # создает третий столбик в grid для красивого вывода infoPanel
 lblEmpty.grid(column=2, row=rowInfo, padx=100)
 
 # ввод баллов абитуриента
@@ -88,11 +88,13 @@ lbl4SubjectGrade.insert(0, 100)
 
 lblRegionalCoef = Label(window, text="Региональный коэффициент")
 lblRegionalCoef.grid(column=0, row=rowRegionalCoef)
-txtRegionalCoef = Entry(window,width=10, textvariable=valRegionalCoef)
+txtRegionalCoef = Entry(window, width=10, textvariable=valRegionalCoef)
 txtRegionalCoef.grid(column=1, row=rowRegionalCoef)
 txtRegionalCoef.insert(0, 1.00)
 
+# возвращает True, если полученный объект- число
 def is_digit(string):
+    string = string.replace(',', '.')
     if string.isdigit():
        return True
     else:
@@ -101,24 +103,42 @@ def is_digit(string):
             return True
         except ValueError:
             return False
+'''def isint(string):
+    if string.isdigit():
+       return True'''
 
+# checking for incorrect input data
 def checkInput():
-    # checking for incorrect input data
     if valAttestationGrade.get() == '' or \
             valUkrGrade.get() == '' or \
             valMathGrade.get() == '' or \
-            val3SubjectGrade.get() == '':
+            val3SubjectGrade.get() == '' or \
+            valRegionalCoef.get() == '':
         infoPanel.delete(1.0, END)
         infoPanel.insert(INSERT, 'заполните пустые поля')
 
     elif is_digit(valAttestationGrade.get()) is False or \
-            is_digit(valUkrGrade.get()) is False or \
-            is_digit(valMathGrade.get()) is False or \
-            is_digit(val3SubjectGrade.get()) is False:
+            is_digit(valRegionalCoef.get()) is False:
         infoPanel.delete(1.0, END)
         infoPanel.insert(INSERT, 'поля должны быть заполнены числами')
 
-    elif float(valAttestationGrade.get()) < 2 or float(valAttestationGrade.get()) > 12:
+    elif valUkrGrade.get().isdigit() is False or \
+            valMathGrade.get().isdigit() is False or \
+            val3SubjectGrade.get().isdigit() is False or \
+            val4SubjectGrade.get().isdigit() is False:
+        try:
+            float(valUkrGrade.get().replace(',', '.'))
+            float(valMathGrade.get().replace(',', '.'))
+            float(val3SubjectGrade.get().replace(',', '.'))
+            float(val4SubjectGrade.get().replace(',', '.'))
+            infoPanel.delete(1.0, END)
+            infoPanel.insert(INSERT, 'балл ЗНО не может быть дробным числом')
+        except ValueError:
+            infoPanel.delete(1.0, END)
+            infoPanel.insert(INSERT, 'поля должны быть заполнены числами')
+
+    elif float(valAttestationGrade.get().replace(',', '.')) < 2 or \
+            float(valAttestationGrade.get().replace(',', '.')) > 12:
         infoPanel.delete(1.0, END)
         infoPanel.insert(INSERT, 'балл аттестата должен быть от 2 до 12')
 
@@ -144,10 +164,13 @@ def checkInput():
         infoPanel.delete(1.0, END)
         infoPanel.insert(INSERT, 'Выберете предмет из выпадающего списка')
 
-    elif float(valRegionalCoef.get()) < 1.0:
+    elif float(valRegionalCoef.get().replace(',', '.')) < 1.0 or float(valRegionalCoef.get().replace(',', '.')) > 1.1:
         infoPanel.delete(1.0, END)
-        infoPanel.insert(INSERT, 'Региональный коэффициент не может быть меньше 1')
+        infoPanel.insert(INSERT, 'Региональный коэффициент должен быть от 1 до 1.1')
+
     else:
+        valAttestationGrade.set(valAttestationGrade.get().replace(',', '.'))
+        valRegionalCoef.set(valRegionalCoef.get().replace(',', '.'))
         return True
         '''
         infoPanel.delete(1.0, END)
@@ -179,6 +202,7 @@ def getSpecialities():
 
     # очиста списка абитуриентов
     c.execute("DELETE FROM student")
+
     if comboSubject4Name.get() == '':
         c.execute("INSERT INTO student VALUES(1, ?, ?, ?, ?, ?, ?, ?, ? )",
               (float(valAttestationGrade.get()), comboSubject3Name.get(), 'NULL', int(valUkrGrade.get()),
