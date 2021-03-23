@@ -1,1 +1,246 @@
+from copy import deepcopy   # для удаления элементов списка во время прохода по списку
+from random import uniform
 
+
+# название города и кол-во тысяч зараженных
+cityNameInfected = {0: ["Kyiv", 87.848],
+                    1: ["Poltava", 50.900],
+                    2: ["Sumy", 54.104],
+                    3: ["Chernihiv", 39.473],
+                    4: ["Zhytomyr", 65.592],
+                    5: ["Vinnytsia", 51.762],
+                    6: ["Cherkasy", 53.630],
+                    7: ["Kharkiv", 95.416],
+                    8: ["Dnipro", 83.909],
+                    9: ["Kropyvnytskyi", 12.034],
+                    10: ["Zaporizhia", 74.449],
+                    11: ["Mykolaiv ", 48.575],
+                    12: ["Rivne", 53.714],
+                    13: ["Khmelnytskyi", 57.280],
+                    14: ["Chernivtsi", 65.939]}
+
+# нормализация (риведение значений к отрезку [0 ; 1])
+cityInfectedNorm = {}
+for city in cityNameInfected:
+    cityInfectedNorm[city] = (cityNameInfected[city][1] - 12.034) / (95.416 - 12.034)
+
+# матрица расстояний между городами (0 если нет возможности посетить город, не задев другой город)
+distanceCities = [[0, 337, 346, 134, 150, 240, 180, 0, 0, 0, 0, 0, 0, 0, 0],
+                  [337, 0, 178, 0, 0, 0, 224, 142, 169, 241, 264, 0, 0, 0, 0],
+                  [346, 178, 0, 290, 0, 0, 0, 183, 0, 0, 0, 0, 0, 0, 0],
+                  [134, 0, 290, 0, 290, 0, 0, 0, 0, 0, 0, 0, 481, 0, 0],
+                  [180, 0, 0, 290, 0, 126, 0, 0, 0, 0, 0, 0, 186, 180, 0],
+                  [240, 0, 0, 0, 126, 0, 341, 0, 0, 315, 0, 423, 271, 122, 285],
+                  [146, 224, 0, 0, 0, 0, 341, 0, 283, 119, 0, 0, 0, 0, 0],
+                  [0, 142, 183, 0, 0, 0, 0, 0, 213, 0, 286, 0, 0, 0, 0],
+                  [0, 169, 0, 0, 0, 0, 283, 213, 0, 248, 84, 324, 0, 0, 0],
+                  [0, 241, 0, 0, 0, 315, 119, 0, 248, 0, 305, 182, 0, 0, 579],
+                  [0, 264, 0, 0, 0, 0, 0, 286, 84, 305, 0, 345, 0, 0, 0],
+                  [0, 0, 0, 0, 0, 423, 0, 0, 324, 182, 345, 0, 0, 0, 628],
+                  [0, 0, 0, 481, 186, 271, 0, 0, 0, 0, 0, 0, 0, 198, 322],
+                  [0, 0, 0, 0, 180, 122, 0, 0, 0, 0, 0, 0, 198, 0, 191],
+                  [0, 0, 0, 0, 0, 285, 0, 0, 0, 579, 0, 628, 322, 191, 0]]
+
+# нормализация
+distanceCitiesNorm = []
+for i in range(15):
+    distanceCitiesNorm.append(list())
+
+for city in range(len(distanceCities)):
+    for city2 in range(len(distanceCities[city])):
+        if distanceCities[city][city2] != 0:
+            distanceCitiesNorm[city].append((distanceCities[city][city2] - 84) / (628 - 84))
+        else:
+            distanceCitiesNorm[city].append(0)
+
+# город, из которого начинается проход по остальным городам
+startCity = 12
+
+neighborCities = []
+
+
+# возвращает список городов, к которым можно пройти из текущего города
+def findNeighbor(curCity):
+    neighbor = []
+    counter = -1
+    for city in distanceCities[curCity]:
+        counter += 1
+        if city != 0:
+            neighbor.append(counter)
+    # print("neighbor ", neighbor)
+    return neighbor
+
+
+# возвращает список городов, к которым можно пройти из текущего города (без учета посещенных городов)
+def findNeighborCitiesNotVisited(curCity, PopulationIndiv):
+    neighbor = findNeighbor(curCity)
+    neighborCitiesNotVisited = deepcopy(neighbor)
+    for city in neighbor:
+        if city in PopulationIndiv.visited:
+            neighborCitiesNotVisited.remove(city)
+    # print("visited ", visited)
+    # print("neighborCitiesNotVisited ", neighborCitiesNotVisited)
+    return neighborCitiesNotVisited
+
+
+class PopulationIndividual:
+    def __init__(self, coefKilometers, coefPeople, startCity):
+        self.coefKilometers = float(coefKilometers)
+        self.coefPeople = float(coefPeople)
+        self.peopleVaccinated = 0
+        self.kilometers = 0
+        self.visited = [startCity]
+
+    def fitness(self):
+        try:
+            return self.peopleVaccinated / self.kilometers
+        except ZeroDivisionError:
+            return 0
+
+
+
+# возвращает ключ из словаря с наибольшим значением value
+def getGreatestKeyInDictByValue(cities):
+    for key in cities:
+        greatestKey = key
+        break
+    greatestVal = cities[key]
+    for key in cities:
+        if cities[key] > greatestVal:
+            greatestKey = key
+            greatestVal = cities[key]
+    return greatestKey
+
+
+# возвращает город, к которому можно пройти с наибольшим приоритетом
+def find_priority_city(curCity, availableCities, PopulationIndiv):
+    priorities = {}
+    for city in availableCities:
+        priorities[city] = PopulationIndiv.coefKilometers * distanceCitiesNorm[curCity][city] +\
+                           PopulationIndiv.coefPeople * cityInfectedNorm[city]
+    # print(priorities)
+    return getGreatestKeyInDictByValue(priorities)
+
+
+# обход всех городов
+def go(curCity, PopulationIndiv):
+    while len(findNeighborCitiesNotVisited(curCity, PopulationIndiv)) != 0:
+        nextCity = find_priority_city(curCity, findNeighborCitiesNotVisited(curCity, PopulationIndiv), PopulationIndiv)
+        # print()
+        # print("curCity ", curCity)
+        # print("ind.visited ", ind.visited)
+        # print("nextCity ", nextCity)
+
+        PopulationIndiv.kilometers += distanceCities[curCity][nextCity]
+        PopulationIndiv.peopleVaccinated += cityNameInfected[nextCity][1]
+        PopulationIndiv.visited.append(nextCity)
+        go(nextCity, PopulationIndiv)
+    return PopulationIndiv.fitness()
+
+
+# возвращвет две лучшие особи из всей популяции
+def findBestTwo(allPopulation):
+    top1 = allPopulation[0]
+    top1Fitness = top1.fitness()
+    top2 = allPopulation[1]
+
+    if top2.fitness() > top1Fitness:
+        top1, top2 = top2, top1
+        top1Fitness = top1.fitness()
+
+    for ind in allPopulation[2:]:
+        if ind.fitness() > top1Fitness:
+            top2 = top1
+            top1 = ind
+            top1Fitness = ind.fitness()
+
+    # print(top1.fitness, top2.fitness())
+    return [top1, top2]
+
+
+# возвращвет 9 новых особей на основе двух наилучших
+def generateNewPopulation(allPopulation):
+    top1, top2 = findBestTwo(allPopulation)
+
+    # установка новых коэффициентов (вычисляем среднее значение между двумя лучшими особями и устанавливаем новые
+    # коэффициенты с отклонением, равным разности между двумя коэффициентами +- 1)
+    newCoef1 = (top1.coefKilometers + top2.coefKilometers) / 2
+    rangeCoef1 = (abs(top1.coefKilometers - top2.coefKilometers) / 2) + 1
+    newCoef2 = (top1.coefPeople + top2.coefPeople) / 2
+    rangeCoef2 = (abs(top1.coefPeople - top2.coefPeople) / 2) + 1
+
+    allPopulation.clear()
+    for i in range(3):
+        for j in range(3):
+            allPopulation.append(PopulationIndividual(uniform(newCoef1 - rangeCoef1, newCoef1 + rangeCoef1),
+                                                      uniform(newCoef2 - rangeCoef2, newCoef2 + rangeCoef2), startCity))
+    #for i in range(9):
+        #print(allPopulation[i].coefKilometers, allPopulation[i].coefPeople)
+        #print()
+    return allPopulation
+
+
+# print(findNeighborCitiesNotVisited(curCity))
+# go(startCity)
+
+# ind1 = PopulationIndividual(0.1, 0.1, startCity)
+# ind2 = PopulationIndividual(0.1, 1, startCity)
+# ind3 = PopulationIndividual(0.1, 3, startCity)
+
+allPopulation = []
+for i in range(3):
+    coef = [-3, 0, 3]
+    for j in range(3):
+        allPopulation.append(PopulationIndividual(coef[i], coef[j], startCity))
+
+# allPopulation = [ind1, ind2, ind3]
+# print(find_priority_city(0, [1,2,3,4], ind1))
+'''
+print("fitness", go(startCity, ind1))
+print("visited", ind1.visited)
+print()
+print("fitness", go(startCity, ind2))
+print("visited", ind2.visited)'''
+
+'''
+for ind in allPopulation:
+    print(go(startCity, ind))
+    # print(ind.coefKilometers, ind.coefPeople)
+    # print("visited", ind.visited)
+    # print("len visited", len(ind.visited))
+    print()
+
+for ind in findBestTwo(allPopulation):
+    print(ind.coefKilometers, ind.coefPeople)
+    print(ind.fitness())
+    print()
+
+generateNewPopulation(allPopulation)
+
+for ind in allPopulation:
+    print(go(startCity, ind))
+    # print(ind.coefKilometers, ind.coefPeople)
+    # print("visited", ind.visited)
+    # print("len visited", len(ind.visited))
+    print()
+
+for ind in findBestTwo(allPopulation):
+    print(ind.coefKilometers, ind.coefPeople)
+    print(ind.fitness())
+    print()
+'''
+
+
+for i in range(10):
+    print("generation ", i + 1)
+    for ind in allPopulation:
+        go(startCity, ind)
+        # print()
+
+    for ind in findBestTwo(allPopulation):
+        print(ind.coefKilometers, ind.coefPeople)
+        print(ind.fitness())
+        print()
+    print()
+
+    generateNewPopulation(allPopulation)
