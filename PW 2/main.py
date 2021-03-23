@@ -19,7 +19,7 @@ cityNameInfected = {0: ["Kyiv", 87.848],
                     13: ["Khmelnytskyi", 57.280],
                     14: ["Chernivtsi", 65.939]}
 
-# нормализация (риведение значений к отрезку [0 ; 1])
+# нормализация (приведение значений к отрезку [0 ; 1])
 cityInfectedNorm = {}
 for city in cityNameInfected:
     cityInfectedNorm[city] = (cityNameInfected[city][1] - 12.034) / (95.416 - 12.034)
@@ -54,9 +54,7 @@ for city in range(len(distanceCities)):
             distanceCitiesNorm[city].append(0)
 
 # город, из которого начинается проход по остальным городам
-startCity = 12
-
-neighborCities = []
+startCity = 0
 
 
 # возвращает список городов, к которым можно пройти из текущего города
@@ -67,7 +65,6 @@ def findNeighbor(curCity):
         counter += 1
         if city != 0:
             neighbor.append(counter)
-    # print("neighbor ", neighbor)
     return neighbor
 
 
@@ -78,8 +75,6 @@ def findNeighborCitiesNotVisited(curCity, PopulationIndiv):
     for city in neighbor:
         if city in PopulationIndiv.visited:
             neighborCitiesNotVisited.remove(city)
-    # print("visited ", visited)
-    # print("neighborCitiesNotVisited ", neighborCitiesNotVisited)
     return neighborCitiesNotVisited
 
 
@@ -96,7 +91,6 @@ class PopulationIndividual:
             return self.peopleVaccinated / self.kilometers
         except ZeroDivisionError:
             return 0
-
 
 
 # возвращает ключ из словаря с наибольшим значением value
@@ -130,7 +124,6 @@ def go(curCity, PopulationIndiv):
         # print("curCity ", curCity)
         # print("ind.visited ", ind.visited)
         # print("nextCity ", nextCity)
-
         PopulationIndiv.kilometers += distanceCities[curCity][nextCity]
         PopulationIndiv.peopleVaccinated += cityNameInfected[nextCity][1]
         PopulationIndiv.visited.append(nextCity)
@@ -174,33 +167,42 @@ def generateNewPopulation(allPopulation):
         for j in range(3):
             allPopulation.append(PopulationIndividual(uniform(newCoef1 - rangeCoef1, newCoef1 + rangeCoef1),
                                                       uniform(newCoef2 - rangeCoef2, newCoef2 + rangeCoef2), startCity))
-    #for i in range(9):
-        #print(allPopulation[i].coefKilometers, allPopulation[i].coefPeople)
-        #print()
     return allPopulation
 
 
-# print(findNeighborCitiesNotVisited(curCity))
-# go(startCity)
+# создает начальную популяцию особей
+def generateInitialPopulation():
+    allPopulation = []
+    for i in range(3):
+        coef = [-3, 0, 3]
+        for j in range(3):
+            allPopulation.append(PopulationIndividual(coef[i], coef[j], startCity))
+    return allPopulation
 
-# ind1 = PopulationIndividual(0.1, 0.1, startCity)
-# ind2 = PopulationIndividual(0.1, 1, startCity)
-# ind3 = PopulationIndividual(0.1, 3, startCity)
 
-allPopulation = []
-for i in range(3):
-    coef = [-3, 0, 3]
-    for j in range(3):
-        allPopulation.append(PopulationIndividual(coef[i], coef[j], startCity))
+# возвращает особь с наибольшим показанием fitness, через указанное число эволюций
+def findBestIndivid(numberOfPopulations):
+    allPopulation = generateInitialPopulation()
+    bestIndivid = allPopulation[0]
 
-# allPopulation = [ind1, ind2, ind3]
-# print(find_priority_city(0, [1,2,3,4], ind1))
-'''
-print("fitness", go(startCity, ind1))
-print("visited", ind1.visited)
-print()
-print("fitness", go(startCity, ind2))
-print("visited", ind2.visited)'''
+    for i in range(numberOfPopulations):
+        print("generation ", i + 1)
+        for ind in allPopulation:
+            go(startCity, ind)
+            # print()
+
+        for ind in findBestTwo(allPopulation):
+            if ind.fitness() > bestIndivid.fitness():
+                bestIndivid = ind
+            print(ind.coefKilometers, ind.coefPeople)
+            print(ind.fitness())
+            print()
+        print()
+
+        generateNewPopulation(allPopulation)
+    return bestIndivid
+
+
 
 '''
 for ind in allPopulation:
@@ -230,17 +232,8 @@ for ind in findBestTwo(allPopulation):
     print()
 '''
 
+bestIndivid = findBestIndivid(10)
+print("bestIndivid", bestIndivid.fitness())
+print(bestIndivid.coefKilometers, bestIndivid.coefPeople)
 
-for i in range(10):
-    print("generation ", i + 1)
-    for ind in allPopulation:
-        go(startCity, ind)
-        # print()
 
-    for ind in findBestTwo(allPopulation):
-        print(ind.coefKilometers, ind.coefPeople)
-        print(ind.fitness())
-        print()
-    print()
-
-    generateNewPopulation(allPopulation)
