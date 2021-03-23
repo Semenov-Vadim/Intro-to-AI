@@ -4,27 +4,27 @@ from tkinter import *
 from tkinter import scrolledtext
 from tkinter.ttk import Combobox
 
-# название города и кол-во тысяч зараженных
-cityNameInfected = {0: ["Kyiv", 87.848],
-                    1: ["Poltava", 50.900],
-                    2: ["Sumy", 54.104],
-                    3: ["Chernihiv", 39.473],
-                    4: ["Zhytomyr", 65.592],
-                    5: ["Vinnytsia", 51.762],
-                    6: ["Cherkasy", 53.630],
-                    7: ["Kharkiv", 95.416],
-                    8: ["Dnipro", 83.909],
-                    9: ["Kropyvnytskyi", 12.034],
-                    10: ["Zaporizhia", 74.449],
-                    11: ["Mykolaiv", 48.575],
-                    12: ["Rivne", 53.714],
-                    13: ["Khmelnytskyi", 57.280],
-                    14: ["Chernivtsi", 65.939]}
+# название города и кол-во сотен зараженных
+cityNameInfected = {0: ["Kyiv", 87848],
+                    1: ["Poltava", 50900],
+                    2: ["Sumy", 54104],
+                    3: ["Chernihiv", 39473],
+                    4: ["Zhytomyr", 65592],
+                    5: ["Vinnytsia", 51762],
+                    6: ["Cherkasy", 53630],
+                    7: ["Kharkiv", 95416],
+                    8: ["Dnipro", 83909],
+                    9: ["Kropyvnytskyi", 12034],
+                    10: ["Zaporizhia", 74449],
+                    11: ["Mykolaiv", 48575],
+                    12: ["Rivne", 53714],
+                    13: ["Khmelnytskyi", 57280],
+                    14: ["Chernivtsi", 65939]}
 
 # нормализация (приведение значений к отрезку [0 ; 1])
 cityInfectedNorm = {}
 for city in cityNameInfected:
-    cityInfectedNorm[city] = (cityNameInfected[city][1] - 12.034) / (95.416 - 12.034)
+    cityInfectedNorm[city] = (cityNameInfected[city][1] - 12034) / (95416 - 12034)
 
 # матрица расстояний между городами (0 если нет возможности посетить город, не задев другой город)
 distanceCities = [[0, 337, 346, 134, 150, 240, 180, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -112,14 +112,14 @@ def getGreatestKeyInDictByValue(cities):
 def find_priority_city(curCity, availableCities, PopulationIndiv):
     priorities = {}
     for city in availableCities:
-        priorities[city] = PopulationIndiv.coefKilometers * distanceCitiesNorm[curCity][city] + \
-                           PopulationIndiv.coefPeople * cityInfectedNorm[city]
+        priorities[city] = PopulationIndiv.coefKilometers * distanceCitiesNorm[curCity][city] + PopulationIndiv.coefPeople * cityInfectedNorm[city]
     # print(priorities)
     return getGreatestKeyInDictByValue(priorities)
 
 
 # обход всех городов
 def go(curCity, PopulationIndiv):
+    PopulationIndiv.peopleVaccinated += cityNameInfected[curCity][1]
     while len(findNeighborCitiesNotVisited(curCity, PopulationIndiv)) != 0:
         nextCity = find_priority_city(curCity, findNeighborCitiesNotVisited(curCity, PopulationIndiv), PopulationIndiv)
         # print()
@@ -127,7 +127,6 @@ def go(curCity, PopulationIndiv):
         # print("ind.visited ", ind.visited)
         # print("nextCity ", nextCity)
         PopulationIndiv.kilometers += distanceCities[curCity][nextCity]
-        PopulationIndiv.peopleVaccinated += cityNameInfected[nextCity][1]
         PopulationIndiv.visited.append(nextCity)
         go(nextCity, PopulationIndiv)
     return PopulationIndiv.fitness()
@@ -173,7 +172,7 @@ def generateNewPopulation(allPopulation):
 
 
 # создает начальную популяцию особей
-def generateInitialPopulation():
+def generateInitialPopulation(startCity):
     allPopulation = []
     for i in range(3):
         coef = [-3, 0, 3]
@@ -183,8 +182,8 @@ def generateInitialPopulation():
 
 
 # возвращает особь с наибольшим показанием fitness, через указанное число эволюций
-def findBestIndivid(numberOfPopulations):
-    allPopulation = generateInitialPopulation()
+def findBestIndivid(numberOfPopulations, startCity):
+    allPopulation = generateInitialPopulation(startCity)
     bestIndivid = allPopulation[0]
 
     for i in range(numberOfPopulations):
@@ -205,35 +204,7 @@ def findBestIndivid(numberOfPopulations):
     return bestIndivid
 
 
-'''
-for ind in allPopulation:
-    print(go(startCity, ind))
-    # print(ind.coefKilometers, ind.coefPeople)
-    # print("visited", ind.visited)
-    # print("len visited", len(ind.visited))
-    print()
-
-for ind in findBestTwo(allPopulation):
-    print(ind.coefKilometers, ind.coefPeople)
-    print(ind.fitness())
-    print()
-
-generateNewPopulation(allPopulation)
-
-for ind in allPopulation:
-    print(go(startCity, ind))
-    # print(ind.coefKilometers, ind.coefPeople)
-    # print("visited", ind.visited)
-    # print("len visited", len(ind.visited))
-    print()
-
-for ind in findBestTwo(allPopulation):
-    print(ind.coefKilometers, ind.coefPeople)
-    print(ind.fitness())
-    print()
-'''
-
-#bestIndivid = findBestIndivid(10)
+# bestIndivid = findBestIndivid(10, 0)
 #print("bestIndivid", bestIndivid.fitness())
 #print(bestIndivid.coefKilometers, bestIndivid.coefPeople)
 
@@ -304,10 +275,10 @@ def checkInput():
 
 
 # выводит лучшие популяции и красиво выводит результирующую популяцию
-def findBestIndividPretty(numberOfPopulations):
+def findBestIndividPretty(numberOfPopulations, startCity):
     infoPanel.delete(1.0, END)
 
-    allPopulation = generateInitialPopulation()
+    allPopulation = generateInitialPopulation(startCity)
     bestIndivid = allPopulation[0]
     bestGeneration = 1
     for i in range(numberOfPopulations):
@@ -331,7 +302,7 @@ def findBestIndividPretty(numberOfPopulations):
             infoPanel.insert(INSERT, '\n')
             break
         infoPanel.insert(INSERT, '\n')
-        print()
+        # print()
 
         generateNewPopulation(allPopulation)
     infoPanel.insert(INSERT, '\nbest generation:')
@@ -344,7 +315,7 @@ def findBestIndividPretty(numberOfPopulations):
     infoPanel.insert(INSERT, '\npassed kilometers: ')
     infoPanel.insert(INSERT, bestIndivid.kilometers)
     infoPanel.insert(INSERT, '\npeople vaccinated: ')
-    infoPanel.insert(INSERT, int(bestIndivid.peopleVaccinated * 1000))
+    infoPanel.insert(INSERT, int(bestIndivid.peopleVaccinated))
     infoPanel.insert(INSERT, '\nnumber of visited cities: ')
     infoPanel.insert(INSERT, len(bestIndivid.visited))
     infoPanel.insert(INSERT, '\norder of cities: ')
@@ -359,7 +330,10 @@ def findBestIndividPretty(numberOfPopulations):
 def findBestIndividButton():
     if not checkInput():
         return
-    findBestIndividPretty(int(valGenerationCount.get()))
+    for key in cityNameInfected:
+        if cityNameInfected[key][0] == comboStartCity.get():
+            startCity = key
+    findBestIndividPretty(int(valGenerationCount.get()), startCity)
 
 
 btnGenerate = Button(window, text="Сгенерировать", command=findBestIndividButton)
