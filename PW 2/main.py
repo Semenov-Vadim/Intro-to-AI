@@ -1,6 +1,8 @@
-from copy import deepcopy   # для удаления элементов списка во время прохода по списку
+from copy import deepcopy  # для удаления элементов списка во время прохода по списку
 from random import uniform
-
+from tkinter import *
+from tkinter import scrolledtext
+from tkinter.ttk import Combobox
 
 # название города и кол-во тысяч зараженных
 cityNameInfected = {0: ["Kyiv", 87.848],
@@ -14,7 +16,7 @@ cityNameInfected = {0: ["Kyiv", 87.848],
                     8: ["Dnipro", 83.909],
                     9: ["Kropyvnytskyi", 12.034],
                     10: ["Zaporizhia", 74.449],
-                    11: ["Mykolaiv ", 48.575],
+                    11: ["Mykolaiv", 48.575],
                     12: ["Rivne", 53.714],
                     13: ["Khmelnytskyi", 57.280],
                     14: ["Chernivtsi", 65.939]}
@@ -110,7 +112,7 @@ def getGreatestKeyInDictByValue(cities):
 def find_priority_city(curCity, availableCities, PopulationIndiv):
     priorities = {}
     for city in availableCities:
-        priorities[city] = PopulationIndiv.coefKilometers * distanceCitiesNorm[curCity][city] +\
+        priorities[city] = PopulationIndiv.coefKilometers * distanceCitiesNorm[curCity][city] + \
                            PopulationIndiv.coefPeople * cityInfectedNorm[city]
     # print(priorities)
     return getGreatestKeyInDictByValue(priorities)
@@ -203,7 +205,6 @@ def findBestIndivid(numberOfPopulations):
     return bestIndivid
 
 
-
 '''
 for ind in allPopulation:
     print(go(startCity, ind))
@@ -232,8 +233,143 @@ for ind in findBestTwo(allPopulation):
     print()
 '''
 
-bestIndivid = findBestIndivid(10)
-print("bestIndivid", bestIndivid.fitness())
-print(bestIndivid.coefKilometers, bestIndivid.coefPeople)
+#bestIndivid = findBestIndivid(10)
+#print("bestIndivid", bestIndivid.fitness())
+#print(bestIndivid.coefKilometers, bestIndivid.coefPeople)
 
 
+# ------------------------------------------------------------------------------------
+# создание окна
+window = Tk()
+window.title("Нахождение оптимального маршрута движения")
+window.geometry('700x600')
+
+# очередность расположения строк
+rowCity = 0
+rowGenerationCount = 1
+rowGenerationButton = 2
+rowInfoPanel = 3
+
+# значения, введенные пользователем
+valCity = StringVar()
+valGenerationCount = StringVar()
+
+cities = ("Kyiv",
+          "Poltava",
+          "Sumy",
+          "Chernihiv",
+          "Zhytomyr",
+          "Vinnytsia",
+          "Cherkasy",
+          "Kharkiv",
+          "Dnipro",
+          "Kropyvnytskyi",
+          "Zaporizhia",
+          "Mykolaiv ",
+          "Rivne",
+          "Khmelnytskyi",
+          "Chernivtsi")
+
+lblStartCity = Label(window, text="Начальный город")
+lblStartCity.grid(column=0, row=rowCity)
+
+comboStartCity = Combobox(window)
+comboStartCity['values'] = cities
+comboStartCity.current(0)  # установите вариант по умолчанию
+comboStartCity.grid(column=1, row=rowCity, pady=10)
+lblStartCity = Entry(window, width=10, textvariable=valCity)
+lblEmpty = Label(window, text="")  # создает третий столбик в grid для красивого вывода infoPanel
+lblEmpty.grid(column=2, row=rowGenerationButton, padx=100)
+
+lblGenerationCount = Label(window, text="Количество поколений")
+lblGenerationCount.grid(column=0, row=rowGenerationCount, padx=0)
+txtGenerationCount = Entry(window,width=10, textvariable=valGenerationCount)
+txtGenerationCount.grid(column=1, row=rowGenerationCount, sticky=W, padx=5)
+txtGenerationCount.insert(0, 5)
+
+
+# проверяет введенные данные
+def checkInput():
+    if comboStartCity.get() not in cities:
+        infoPanel.delete(1.0, END)
+        infoPanel.insert(INSERT, 'Выберете город из выпадающего списка')
+    elif valGenerationCount.get().isdigit() == False:
+        infoPanel.delete(1.0, END)
+        infoPanel.insert(INSERT, 'Количество генераций должно быть числом больше нуля')
+    elif int(valGenerationCount.get()) <= 0:
+        infoPanel.delete(1.0, END)
+        infoPanel.insert(INSERT, 'Количество генераций должно быть числом больше нуля')
+    else:
+        return True
+
+
+# выводит лучшие популяции и красиво выводит результирующую популяцию
+def findBestIndividPretty(numberOfPopulations):
+    infoPanel.delete(1.0, END)
+
+    allPopulation = generateInitialPopulation()
+    bestIndivid = allPopulation[0]
+    bestGeneration = 1
+    for i in range(numberOfPopulations):
+        infoPanel.insert(INSERT, "generation ")
+        infoPanel.insert(INSERT, (i + 1))
+        infoPanel.insert(INSERT, '\n')
+        for ind in allPopulation:
+            go(startCity, ind)
+
+        for ind in findBestTwo(allPopulation):
+            if ind.fitness() > bestIndivid.fitness():
+                bestIndivid = ind
+                bestGeneration = i + 1
+            infoPanel.insert(INSERT, 'coefKm: ')
+            infoPanel.insert(INSERT, ('%.3f' %round(ind.coefKilometers, 3)))
+            infoPanel.insert(INSERT, "  coefPeople ")
+            infoPanel.insert(INSERT, ('%.3f' %round(ind.coefPeople, 3)))
+            infoPanel.insert(INSERT, '\n')
+            infoPanel.insert(INSERT, "fitness ")
+            infoPanel.insert(INSERT, ind.fitness())
+            infoPanel.insert(INSERT, '\n')
+            break
+        infoPanel.insert(INSERT, '\n')
+        print()
+
+        generateNewPopulation(allPopulation)
+    infoPanel.insert(INSERT, '\nbest generation:')
+    infoPanel.insert(INSERT, '\ngeneration number: ')
+    infoPanel.insert(INSERT, bestGeneration)
+    infoPanel.insert(INSERT, '\ncoefKm: ')
+    infoPanel.insert(INSERT, bestIndivid.coefKilometers)
+    infoPanel.insert(INSERT, '\ncoefPeople: ')
+    infoPanel.insert(INSERT, bestIndivid.coefPeople)
+    infoPanel.insert(INSERT, '\npassed kilometers: ')
+    infoPanel.insert(INSERT, bestIndivid.kilometers)
+    infoPanel.insert(INSERT, '\npeople vaccinated: ')
+    infoPanel.insert(INSERT, int(bestIndivid.peopleVaccinated * 1000))
+    infoPanel.insert(INSERT, '\nnumber of visited cities: ')
+    infoPanel.insert(INSERT, len(bestIndivid.visited))
+    infoPanel.insert(INSERT, '\norder of cities: ')
+    citiesOrder = []
+    for city in bestIndivid.visited:
+        citiesOrder.append(cityNameInfected[city][0])
+    infoPanel.insert(INSERT, citiesOrder)
+    return bestIndivid
+
+
+#заускает проверку данных и вывод генераций
+def findBestIndividButton():
+    if not checkInput():
+        return
+    findBestIndividPretty(int(valGenerationCount.get()))
+
+
+btnGenerate = Button(window, text="Сгенерировать", command=findBestIndividButton)
+btnGenerate.grid(column=0, row=rowGenerationButton, columnspan=1, padx=5, pady=5)
+
+
+infoPanel = scrolledtext.ScrolledText(window, width=80, height=29)
+infoPanel.grid(column=0, row=rowInfoPanel, columnspan=3, padx=5)
+# infoPanel.pack(expand = True, fill=BOTH)
+
+
+# Эта функция вызывает бесконечный цикл окна, поэтому окно будет ждать любого взаимодействия с пользователем, пока не будет закрыто
+window.mainloop()
