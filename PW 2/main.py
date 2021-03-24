@@ -214,7 +214,7 @@ def findBestIndivid(numberOfPopulations, startCity):
 # ------------------------------------------------------------------------------------
 # создание окна
 window = Tk()
-window.title("Нахождение оптимального маршрута движения")
+window.title("Нахождение оптимального маршрута")
 window.geometry('700x600')
 
 # очередность расположения строк
@@ -244,19 +244,19 @@ cities = ("Kyiv",
           "Chernivtsi")
 
 lblStartCity = Label(window, text="Начальный город")
-lblStartCity.grid(column=0, row=rowCity)
+lblStartCity.grid(column=0, row=rowCity, padx=5)
 
 comboStartCity = Combobox(window)
 comboStartCity['values'] = cities
 comboStartCity.current(0)  # установите вариант по умолчанию
-comboStartCity.grid(column=1, row=rowCity, pady=10)
+comboStartCity.grid(column=1, row=rowCity, pady=10, padx=5)
 lblStartCity = Entry(window, width=10, textvariable=valCity)
 lblEmpty = Label(window, text="")  # создает третий столбик в grid для красивого вывода infoPanel
-lblEmpty.grid(column=2, row=rowGenerationButton, padx=100)
+lblEmpty.grid(column=2, row=rowGenerationButton, padx=180)
 
 lblGenerationCount = Label(window, text="Количество поколений")
 lblGenerationCount.grid(column=0, row=rowGenerationCount, padx=0)
-txtGenerationCount = Entry(window,width=10, textvariable=valGenerationCount)
+txtGenerationCount = Entry(window, width=10, textvariable=valGenerationCount)
 txtGenerationCount.grid(column=1, row=rowGenerationCount, sticky=W, padx=5)
 txtGenerationCount.insert(0, 5)
 
