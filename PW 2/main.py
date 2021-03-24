@@ -283,10 +283,12 @@ def findBestIndividPretty(numberOfPopulations, startCity):
     allPopulation = generateInitialPopulation(startCity)
     bestIndivid = allPopulation[0]
     bestGeneration = 1
+
+    infoPanel.insert(INSERT, 'the best individuals in a generation:\n')
     for i in range(numberOfPopulations):
         infoPanel.insert(INSERT, "generation ")
         infoPanel.insert(INSERT, (i + 1))
-        infoPanel.insert(INSERT, '\n')
+        infoPanel.insert(INSERT, ':\n')
         for ind in allPopulation:
             go(startCity, ind)
 
@@ -307,7 +309,7 @@ def findBestIndividPretty(numberOfPopulations, startCity):
         # print()
 
         generateNewPopulation(allPopulation)
-    infoPanel.insert(INSERT, '\nbest generation:')
+    infoPanel.insert(INSERT, '\nthe best generation:')
     infoPanel.insert(INSERT, '\ngeneration number: ')
     infoPanel.insert(INSERT, bestGeneration)
     infoPanel.insert(INSERT, '\ncoefKm: ')
@@ -318,7 +320,7 @@ def findBestIndividPretty(numberOfPopulations, startCity):
     infoPanel.insert(INSERT, bestIndivid.kilometers)
     infoPanel.insert(INSERT, '\npeople vaccinated: ')
     infoPanel.insert(INSERT, int(bestIndivid.peopleVaccinated))
-    infoPanel.insert(INSERT, '\nnumber of visited cities: ')
+    infoPanel.insert(INSERT, '\nthe number of visited cities: ')
     infoPanel.insert(INSERT, len(bestIndivid.visited))
     infoPanel.insert(INSERT, '\norder of cities: ')
     citiesOrder = []
@@ -342,6 +344,7 @@ btnGenerate = Button(window, text="Сгенерировать", command=findBest
 btnGenerate.grid(column=0, row=rowGenerationButton, columnspan=1, padx=5, pady=5)
 
 
+# информационная панель
 infoPanel = scrolledtext.ScrolledText(window, width=80, height=29)
 infoPanel.grid(column=0, row=rowInfoPanel, columnspan=3, padx=5)
 # infoPanel.pack(expand = True, fill=BOTH)
