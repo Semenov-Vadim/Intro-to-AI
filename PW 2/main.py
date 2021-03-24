@@ -143,7 +143,9 @@ def findBestTwo(allPopulation):
         top1Fitness = top1.fitness()
 
     for ind in allPopulation[2:]:
-        if ind.fitness() > top1Fitness:
+        if ind.fitness() == top1Fitness:
+            top2 = ind
+        elif ind.fitness() > top1Fitness:
             top2 = top1
             top1 = ind
             top1Fitness = ind.fitness()
