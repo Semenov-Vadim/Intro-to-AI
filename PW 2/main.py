@@ -236,7 +236,7 @@ cities = ("Kyiv",
           "Dnipro",
           "Kropyvnytskyi",
           "Zaporizhia",
-          "Mykolaiv ",
+          "Mykolaiv",
           "Rivne",
           "Khmelnytskyi",
           "Chernivtsi")
